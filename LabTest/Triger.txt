@@ -1,0 +1,74 @@
+//*********1**********//
+
+CREATE TABLE patient 
+(
+patientid NUMBER(10,2), 
+name varchar(30),
+bedno NUMBER(10,2)
+)
+
+INSERT INTO patient VALUES (100,'juwel',10);
+INSERT INTO patient VALUES (102,'rana',20);
+
+select*from patient;
+
+CREATE OR REPLACE TRIGGER check_bedno
+	BEFORE UPDATE OF bedno
+	ON patient
+	FOR EACH ROW
+	
+DECLARE 
+	new_bedno NUMBER(10,2);
+	
+BEGIN 
+	new_bedno:= :new.bedno;
+	IF new_bedno < 0
+		THEN raise_application_error(-20001, 'Bedno can not be negative.');
+	END IF;
+END;
+
+UPDATE patient SET bedno = bedno -5 WHERE bedno= 10;
+
+//*********2**********//
+
+
+Results
+Explain
+Describe
+Saved SQL
+History
+
+CREATE TABLE audit_patient (patientid NUMBER(10,2), name varchar(30), bedno NUMBER(10,2), operation varchar(50), opp_date DATE)
+
+select*from audit_patients;
+
+CREATE OR REPLACE TRIGGER audit_juwel
+	AFTER UPDATE OR DELETE ON patient
+	FOR EACH ROW
+	
+DECLARE 
+	bedno NUMBER(10,2);
+	operation varchar(50);
+	name varchar(30);
+	patientid NUMBER(10,2);
+	
+BEGIN
+	IF updating 
+		THEN operation:= 'Update'; 
+	END IF;
+
+	IF deleting 
+		THEN operation:= 'Delete'; 
+	END IF;
+
+	bedno:= :OLD.bedno;
+	patientid:= :OLD.patientid;
+        name:=:OLD.name;
+	INSERT INTO audit_patient VALUES ( patientid, name, bedno, operation, sysdate );
+END;
+
+UPDATE patient SET bedno= bedno+10 WHERE patientid= 100;
+
+DELETE FROM patient WHERE patientid= 102;
+
+SELECT * FROM audit_patient
